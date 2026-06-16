@@ -7,10 +7,18 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div id="loading-screen" aria-live="polite">
+    <div class="loader-content">
+      <div class="loader-mark">HCT</div>
+      <p>Loading study guide...</p>
+    </div>
+  </div>
   <div class="shell">
     <aside>
-      <h1>HCT Study Guide</h1>
-      <p>Based on the supplied HCT-LEC PDF: Lecture 01 and Lecture 02.</p>
+      <div class="brand-block">
+        <h1>HCT Study Guide</h1>
+        <p>Based on the supplied HCT-LEC PDF: Lecture 01 and Lecture 02.</p>
+      </div>
       <nav>
         <a href="#high-yield">High-Yield Map</a>
         <a class="nav-group" href="#lecture-01">Lec 01</a>
@@ -32,6 +40,13 @@
         <a href="#tables">Fast Tables</a>
         <a href="#quiz">Self-Check</a>
       </nav>
+      <div class="header-actions">
+        <div class="progress-pill" title="Reviewed sections">
+          <span id="header-pct">0%</span>
+          <span class="pill-bar"><span id="pill-fill"></span></span>
+        </div>
+        <button type="button" id="theme-toggle" aria-label="Toggle theme" title="Toggle theme">Dark</button>
+      </div>
     </aside>
 
     <main>
@@ -44,6 +59,11 @@
             <span class="pill">Lecture 01: Intro & Safety</span>
             <span class="pill">Lecture 02: Fixation & Dehydration</span>
             <span class="pill">Print-friendly</span>
+          </div>
+          <div class="hero-stats" aria-label="Study guide summary">
+            <div><strong>16</strong><span>Sections</span></div>
+            <div><strong>33</strong><span>Source slides</span></div>
+            <div><strong>10+</strong><span>Self-checks</span></div>
           </div>
         </div>
         <figure class="slide">
