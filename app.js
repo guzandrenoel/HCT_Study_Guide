@@ -90,6 +90,87 @@
     setActive();
   }
 
+  function escapeRegExp(value) {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
+  function clearSearchHighlights() {
+    document.querySelectorAll("mark.search-hit").forEach(mark => {
+      mark.replaceWith(document.createTextNode(mark.textContent));
+    });
+  }
+
+  function highlightMatches(section, query) {
+    const pattern = new RegExp(escapeRegExp(query), "gi");
+    const walker = document.createTreeWalker(section, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        const parent = node.parentElement;
+        if (!parent || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+        if (parent.closest("button, input, textarea, script, style, mark")) return NodeFilter.FILTER_REJECT;
+        return node.nodeValue.toLowerCase().includes(query.toLowerCase())
+          ? NodeFilter.FILTER_ACCEPT
+          : NodeFilter.FILTER_REJECT;
+      }
+    });
+
+    const matches = [];
+    while (walker.nextNode()) matches.push(walker.currentNode);
+
+    matches.forEach(node => {
+      const fragment = document.createDocumentFragment();
+      let lastIndex = 0;
+      node.nodeValue.replace(pattern, (match, index) => {
+        fragment.append(document.createTextNode(node.nodeValue.slice(lastIndex, index)));
+        const mark = document.createElement("mark");
+        mark.className = "search-hit";
+        mark.textContent = match;
+        fragment.append(mark);
+        lastIndex = index + match.length;
+        return match;
+      });
+      fragment.append(document.createTextNode(node.nodeValue.slice(lastIndex)));
+      node.replaceWith(fragment);
+    });
+  }
+
+  function applySearch(query, tools) {
+    const q = query.trim();
+    const status = tools.querySelector("#search-status");
+    const emptyState = document.querySelector("#search-empty");
+    const clearButton = tools.querySelector("#clear-search");
+
+    clearSearchHighlights();
+    clearButton.hidden = !q;
+
+    if (!q) {
+      reviewableSections.forEach(section => section.classList.remove("is-hidden-by-search"));
+      document.querySelectorAll(".lecture-divider").forEach(divider => divider.classList.remove("is-hidden-by-search"));
+      if (emptyState) emptyState.hidden = true;
+      if (status) status.textContent = "Search by term, acronym, or step";
+      return;
+    }
+
+    let visibleCount = 0;
+    reviewableSections.forEach(section => {
+      const isMatch = section.textContent.toLowerCase().includes(q.toLowerCase());
+      section.classList.toggle("is-hidden-by-search", !isMatch);
+      if (isMatch) {
+        visibleCount += 1;
+        highlightMatches(section, q);
+      }
+    });
+
+    document.querySelectorAll(".lecture-divider").forEach(divider => {
+      divider.classList.add("is-hidden-by-search");
+    });
+
+    if (emptyState) {
+      emptyState.hidden = visibleCount > 0;
+      emptyState.querySelector("strong").textContent = q;
+    }
+    if (status) status.textContent = `${visibleCount} section${visibleCount === 1 ? "" : "s"} found`;
+  }
+
   function addSectionReviewControls() {
     reviewableSections.forEach(section => {
       if (section.querySelector(".section-review-toggle")) return;
@@ -126,8 +207,12 @@
     tools.innerHTML = `
       <div class="tool-search">
         <label class="search-box">
-          <span>Search guide</span>
-          <input id="guide-search" type="search" placeholder="fixative, BNF, dehydration...">
+          <span>Find topic</span>
+          <div class="search-input-row">
+            <input id="guide-search" type="search" placeholder="Try BNF, fixation, dehydration...">
+            <button type="button" id="clear-search" hidden>Clear</button>
+          </div>
+          <small id="search-status">Search by term, acronym, or step</small>
         </label>
       </div>
       <div class="tool-answer-panel">
@@ -142,13 +227,22 @@
       </div>
     `;
     hero.insertAdjacentElement("afterend", tools);
+    tools.insertAdjacentHTML("afterend", `
+      <div class="search-empty" id="search-empty" hidden>
+        <strong></strong>
+        <span>No matching sections. Try a shorter term or another keyword.</span>
+      </div>
+    `);
 
     const search = tools.querySelector("#guide-search");
     search.addEventListener("input", () => {
-      const q = search.value.trim().toLowerCase();
-      document.querySelectorAll("main section, .lecture-divider").forEach(block => {
-        block.classList.toggle("is-hidden-by-search", Boolean(q) && !block.textContent.toLowerCase().includes(q));
-      });
+      applySearch(search.value, tools);
+    });
+
+    tools.querySelector("#clear-search").addEventListener("click", () => {
+      search.value = "";
+      applySearch("", tools);
+      search.focus();
     });
 
     tools.querySelector("#clear-reviewed").addEventListener("click", () => {

@@ -887,7 +887,7 @@
 
     .search-box {
       display: grid;
-      gap: 4px;
+      gap: 5px;
       min-width: 0;
       color: var(--dim);
       font-family: Consolas, "SFMono-Regular", monospace;
@@ -895,6 +895,13 @@
       font-weight: 800;
       letter-spacing: .1em;
       text-transform: uppercase;
+    }
+
+    .search-input-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
     }
 
     .search-box input {
@@ -906,6 +913,43 @@
       background: var(--surface);
       color: var(--text);
       font: 14px/1.4 Inter, "Segoe UI", system-ui, sans-serif;
+    }
+
+    .search-box small {
+      color: var(--dim);
+      font-size: .64rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: none;
+    }
+
+    .search-hit {
+      padding: 0 .16em;
+      border-radius: 4px;
+      background: rgba(251, 191, 36, .28);
+      color: var(--text);
+    }
+
+    .search-empty {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin: -8px 0 18px;
+      padding: 12px 14px;
+      border: 1px solid rgba(251, 191, 36, .26);
+      border-radius: 12px;
+      background: rgba(251, 191, 36, .08);
+      color: var(--muted);
+    }
+
+    .search-empty[hidden] {
+      display: none;
+    }
+
+    .search-empty strong {
+      color: var(--amber);
+      font-family: Consolas, "SFMono-Regular", monospace;
+      font-size: .78rem;
     }
 
     .tool-search,
